@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Order</title>
-    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
     <title>Nusantara - Laptop Digital</title>
     <style>
         /* Reset dan gaya dasar */
@@ -659,14 +657,6 @@
     </style>
 </head>
 <body>
-
-  <h2>Form Order</h2>
-  <form id="orderForm" onsubmit="sendOrder(event)">
-    <label>Nama:<br><input type="text" id="name" required></label><br><br>
-    <label>Email:<br><input type="email" id="email" required></label><br><br>
-    <label>Pesanan:<br><textarea id="order" required></textarea></label><br><br>
-    <button type="submit">Kirim Order</button>
-  </form>
     <!-- Header -->
     <header>
         <div class="container">
@@ -971,6 +961,36 @@
             <button class="btn-ok">OK</button>
         </div>
     </div>
+    
+    <!-- === Script Kirim Notifikasi ke Gmail via EmailJS === -->
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+    <script>
+    (function() {
+    // Ganti dengan Public Key dari akun EmailJS kamu
+    emailjs.init("im7wzhPQKluYnDIOG");
+    }
+    )(
+    );
+    document.getElementById("orderForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+        const params = {
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        product: document.getElementById("product").value,
+        qty: document.getElementById("qty").value,
+        paymentMethod: document.getElementById("paymentMethod").value,
+        note: document.getElementById("note").value
+    };
+
+    // Kirim ke EmailJS
+    emailjs.send("service_1bfjztc", "template_im9fe4c", params)
+        .then(function(response) {
+            console.log("✅ Notifikasi berhasil dikirim:", response.status, response.text);
+        }, function(error) {
+            console.error("❌ Gagal mengirim notifikasi:", error);
+        });
+        });
+    </script>
     
     <!-- Admin Panel -->
     <div class="admin-panel" id="adminPanel">
@@ -1346,25 +1366,6 @@
                     }, 5000);
                 }
             }
-            
-                (function(){
-      emailjs.init("YOUR_PUBLIC_KEY"); // ganti dengan Public Key kamu
-    })();
-       function sendOrder(e){
-       e.preventDefault();
-       const params = {
-       from_name: document.getElementById("name").value,
-       from_email: document.getElementById("email").value,
-       message: document.getElementById("order").value
-      };
-
-      emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", params)
-      .then(() => {
-        alert("Order berhasil dikirim! Notifikasi akan masuk ke Gmail.");
-        document.getElementById("orderForm").reset();
-      })
-      .catch(err => alert("Gagal mengirim: " + err.text));
-    }
             
             // Fungsi untuk memperbarui tabel data pembelian
             function updatePurchaseTable() {
