@@ -3,6 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="text/javascript">
+       (function() {
+      // Inisialisasi EmailJS dengan Public Key Anda
+      emailjs.init({
+        publicKey: "im7wzhPQKluYnDIOG", // <--- GANTI DENGAN PUBLIC KEY ANDA
+      });
+   })();
+    </script>
     <title>Nusantara - Laptop Digital</title>
     <style>
         /* Reset dan gaya dasar */
@@ -962,36 +971,6 @@
         </div>
     </div>
     
-    <!-- === Script Kirim Notifikasi ke Gmail via EmailJS === -->
-    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-    <script>
-    (function() {
-    // Ganti dengan Public Key dari akun EmailJS kamu
-    emailjs.init("im7wzhPQKluYnDIOG");
-    }
-    )(
-    );
-    document.getElementById("orderForm").addEventListener("submit", function(event) {
-        event.preventDefault();
-        const params = {
-        name: document.getElementById("name").value,
-        email: document.getElementById("email").value,
-        product: document.getElementById("product").value,
-        qty: document.getElementById("qty").value,
-        paymentMethod: document.getElementById("paymentMethod").value,
-        note: document.getElementById("note").value
-    };
-
-    // Kirim ke EmailJS
-    emailjs.send("service_1bfjztc", "template_im9fe4c", params)
-        .then(function(response) {
-            console.log("✅ Notifikasi berhasil dikirim:", response.status, response.text);
-        }, function(error) {
-            console.error("❌ Gagal mengirim notifikasi:", error);
-        });
-        });
-    </script>
-    
     <!-- Admin Panel -->
     <div class="admin-panel" id="adminPanel">
         <div class="admin-header">
@@ -1221,6 +1200,50 @@
                     }
                 }
             });
+            
+            document.getElementById('purchaseForm').addEventListener('submit', function(event) {
+    event.preventDefault(); // Mencegah form memuat ulang halaman
+
+    // Tampilkan modal loading (opsional)
+    // ...
+
+    // Ambil form data
+    const form = event.target;
+    
+    // Parameter yang akan dikirim ke template EmailJS
+    const templateParams = {
+        // Nama-nama ini harus cocok dengan variabel {{...}} di template EmailJS Anda
+        nama_pelanggan: form.nama_pelanggan.value, 
+        email_pelanggan: form.email_pelanggan.value, // Email tujuan
+        metode_pembayaran: form.metode_pembayaran.value,
+        order_details: "Produk A (Rp 100.000), Produk B (Rp 50.000)", // Contoh detail item
+        total_pembayaran: "Rp 150.000",
+    };
+    
+    // GANTI ID-ID INI DENGAN ID AKUN EMAILJS ANDA!
+    const SERVICE_ID = 'service_1bfjztc'; 
+    const TEMPLATE_ID = 'template_im9fe4c'; 
+
+    emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams)
+        .then(function(response) {
+            console.log('SUCCESS!', response.status, response.text);
+            
+            // 1. Tampilkan Modal Konfirmasi
+            document.getElementById('confirmationModal').style.display = 'flex';
+            
+            // 2. Reset Form
+            form.reset();
+
+        }, function(error) {
+            console.log('FAILED...', error);
+            alert('Pemesanan berhasil, tetapi gagal mengirim email konfirmasi.');
+        });
+});
+
+// Menutup modal saat tombol OK diklik
+document.querySelector('.btn-ok').addEventListener('click', function() {
+    document.getElementById('confirmationModal').style.display = 'none';
+});
             
             // Buka modal saat tombol beli diklik
             buyButtons.forEach(button => {
