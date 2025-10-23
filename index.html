@@ -1201,49 +1201,7 @@
                 }
             });
             
-            document.getElementById('purchaseForm').addEventListener('submit', function(event) {
-    event.preventDefault(); // Mencegah form memuat ulang halaman
-
-    // Tampilkan modal loading (opsional)
-    // ...
-
-    // Ambil form data
-    const form = event.target;
-    
-    // Parameter yang akan dikirim ke template EmailJS
-    const templateParams = {
-        // Nama-nama ini harus cocok dengan variabel {{...}} di template EmailJS Anda
-        nama_pelanggan: form.nama_pelanggan.value, 
-        email_pelanggan: form.email_pelanggan.value, // Email tujuan
-        metode_pembayaran: form.metode_pembayaran.value,
-        order_details: "Produk A (Rp 100.000), Produk B (Rp 50.000)", // Contoh detail item
-        total_pembayaran: "Rp 150.000",
-    };
-    
-    // GANTI ID-ID INI DENGAN ID AKUN EMAILJS ANDA!
-    const SERVICE_ID = 'service_1bfjztc'; 
-    const TEMPLATE_ID = 'template_im9fe4c'; 
-
-    emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams)
-        .then(function(response) {
-            console.log('SUCCESS!', response.status, response.text);
             
-            // 1. Tampilkan Modal Konfirmasi
-            document.getElementById('confirmationModal').style.display = 'flex';
-            
-            // 2. Reset Form
-            form.reset();
-
-        }, function(error) {
-            console.log('FAILED...', error);
-            alert('Pemesanan berhasil, tetapi gagal mengirim email konfirmasi.');
-        });
-});
-
-// Menutup modal saat tombol OK diklik
-document.querySelector('.btn-ok').addEventListener('click', function() {
-    document.getElementById('confirmationModal').style.display = 'none';
-});
             
             // Buka modal saat tombol beli diklik
             buyButtons.forEach(button => {
@@ -1304,51 +1262,77 @@ document.querySelector('.btn-ok').addEventListener('click', function() {
                 }
             });
             
-            // Proses form pembelian
-            purchaseForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                customerData = {
-                    product: productNameInput.value,
-                    price: productPriceInput.value,
-                    name: document.getElementById('customerName').value,
-                    email: document.getElementById('customerEmail').value,
-                    phone: document.getElementById('customerPhone').value,
-                    address: document.getElementById('customerAddress').value,
-                    payment: document.getElementById('paymentMethod').value,
-                    date: new Date().toLocaleString('id-ID')
-                };
-                
-                // Simpan ke riwayat pembelian
-                purchaseHistory.push(customerData);
-                localStorage.setItem('purchaseHistory', JSON.stringify(purchaseHistory));
-                
-                // Update tabel admin
-                updatePurchaseTable();
-                
-                // Tampilkan pesan konfirmasi
-                confirmationMessage.innerHTML = `
-                    Terima kasih <strong>${customerData.name}</strong>!<br><br>
-                    Pembelian <strong>${customerData.product}</strong> telah berhasil.<br><br>
-                    Pesanan akan segera diproses dan dikirim ke alamat:<br>
-                    <strong>${customerData.address}</strong><br><br>
-                    Kami akan mengirimkan konfirmasi ke email <strong>${customerData.email}</strong> 
-                    atau menghubungi Anda di <strong>${customerData.phone}</strong>.
-                `;
-                
-                // Tampilkan modal konfirmasi
-                modal.style.display = 'none';
-                confirmationModal.style.display = 'flex';
-                
-                // Tambahkan efek confetti
-                createConfetti();
-            });
-            
-            // Tutup modal konfirmasi
-            btnOk.addEventListener('click', function() {
-                confirmationModal.style.display = 'none';
-                purchaseForm.reset();
-            });
+            // Inisialisasi EmailJS (pastikan sudah import script EmailJS di atas)
+(function() {
+    emailjs.init("im7wzhPQKluYnDIOG"); // Ganti dengan Public Key dari akun EmailJS
+})();
+
+// Proses form pembelian
+purchaseForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Ambil data pembeli
+    const customerData = {
+        product: productNameInput.value,
+        price: productPriceInput.value,
+        name: document.getElementById('customerName').value,
+        email: document.getElementById('customerEmail').value,
+        phone: document.getElementById('customerPhone').value,
+        address: document.getElementById('customerAddress').value,
+        payment: document.getElementById('paymentMethod').value,
+        date: new Date().toLocaleString('id-ID')
+    };
+    
+    // Simpan ke riwayat pembelian (localStorage)
+    purchaseHistory.push(customerData);
+    localStorage.setItem('purchaseHistory', JSON.stringify(purchaseHistory));
+    
+    // Update tabel admin
+    updatePurchaseTable();
+    
+    // === Kirim notifikasi ke Gmail via EmailJS ===
+    const emailParams = {
+        product: customerData.product,
+        price: customerData.price,
+        name: customerData.name,
+        email: customerData.email,
+        phone: customerData.phone,
+        address: customerData.address,
+        payment: customerData.payment,
+        date: customerData.date
+    };
+
+    emailjs.send("service_1bfjztc", "template_im9fe4c", emailParams)
+        .then(function(response) {
+            console.log("✅ Notifikasi order terkirim:", response.status, response.text);
+        }, function(error) {
+            console.error("❌ Gagal mengirim notifikasi:", error);
+        });
+
+    // Tampilkan pesan konfirmasi ke pembeli
+    confirmationMessage.innerHTML = `
+        Terima kasih <strong>${customerData.name}</strong>!<br><br>
+        Pembelian <strong>${customerData.product}</strong> telah berhasil.<br><br>
+        Pesanan akan segera diproses dan dikirim ke alamat:<br>
+        <strong>${customerData.address}</strong><br><br>
+        Kami akan mengirimkan konfirmasi ke email <strong>${customerData.email}</strong> 
+        atau menghubungi Anda di <strong>${customerData.phone}</strong>.
+    `;
+    
+    // Tutup modal utama & tampilkan modal konfirmasi
+    modal.style.display = 'none';
+    confirmationModal.style.display = 'flex';
+    
+    // Efek confetti
+    createConfetti();
+});
+
+// Tutup modal konfirmasi
+btnOk.addEventListener('click', function() {
+    confirmationModal.style.display = 'none';
+    purchaseForm.reset();
+});
+
             
             // Tampilkan keranjang saat ikon diklik
             cartIcon.addEventListener('click', function() {
